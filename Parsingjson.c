@@ -296,6 +296,7 @@ Scene read_scene(char* json_name){
         expect_c(json, ':');
         skip_ws(json);
 
+
         if(strcmp(key, "width") == 0){
           if(objtype == T_CAMERA){
             float value = next_number(json);
