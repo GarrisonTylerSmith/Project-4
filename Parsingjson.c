@@ -50,7 +50,7 @@ typedef struct{
       float radial_a1;
       float radial_a2;
       float angular_a0;
-      float theta
+      float theta;
     }light;
   };
 }Object;
