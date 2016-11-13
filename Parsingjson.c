@@ -36,6 +36,8 @@ typedef struct{
     struct{
       float position;
       float normal;
+      float diffuse_color[3];
+      float specular_color[3];
     }plane;
     struct{
       float position;
@@ -358,6 +360,25 @@ Scene read_scene(char* json_name){
         }
         else if(strcmp(key, "specular_color")==0){
           if(objtype == T_SPHERE){
+            float* v3 = next_vector(json);
+            specular_color[0] = v3[0];
+            specular_color[1] = v3[1];
+            specular_color[2] = v3[2];
+            set_specular_color = 1;
+          }
+        }
+        else if(strcmp(key, "diffuse_color")==0){
+          if(objtype == T_PLANE){
+            float* v3 = next_vector(json);
+            diffuse_color[0] = v3[0];
+            diffuse_color[1] = v3[1];
+            diffuse_color[2] = v3[2];
+            set_diffuse_color = 1;
+          }
+
+        }
+        else if(strcmp(key, "specular_color")==0){
+          if(objtype == T_PLANE){
             float* v3 = next_vector(json);
             specular_color[0] = v3[0];
             specular_color[1] = v3[1];

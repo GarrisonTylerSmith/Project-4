@@ -133,13 +133,17 @@ float ray_sphere_intersection(float* c, float r, float* r0, float* Rd){
 
 }
 // I created the send ray function to send a ray and get the pixel needed for the intersection
-void send_ray(Intersection* intersection, Scene* scene, float* r0, float* rd){
+void send_ray(Intersection* intersection, Scene* scene, float* r0, float* rd, float avoid){
 	int k; 
 	float best_t = INFINITY;
 	float Ro_new[3];
 	float Rd_new[3];
 
+
 			for(k = 0; k < scene->num_objects; k ++){
+				if(k == avoid){
+					continue;
+				}
 				float t = -1;
 		
 				Object o = scene->objects[k];
@@ -178,7 +182,7 @@ void send_ray(Intersection* intersection, Scene* scene, float* r0, float* rd){
 void get_color(float* color, Scene* scene , float* r0, float* rd){
 	Intersection intersect;
 	intersect.object_id = -1;
-	send_ray(&intersect, scene, r0, rd);
+	send_ray(&intersect, scene, r0, rd, -1);
 	if(intersect.object_id == -1){
 		return;
 	}
@@ -208,14 +212,13 @@ Object* closest = &scene->objects[intersect.object_id];
 		 //shadow test intersection
 
 		// Intersection shadow; 
-		// send_ray(&shadow, scene, intersect.vect_point, light_direction);
+		// send_ray(&shadow, scene, intersect.vect_point, light_direction, intersect.object_id);
 
 		// if(shadow.object_id != -1){
-
 		// 	vector_subtract(shadow.vect_point, intersect.vect_point, dist);
-		// 	float* distance_to_object = length(dist);
+		// 	float distance_to_object = length(dist);
 
-		// 	if(light_direction > distance_to_object){
+		// 	if(distance_to_light > distance_to_object){
 		// 		continue;
 		// 	}
 
@@ -241,18 +244,20 @@ Object* closest = &scene->objects[intersect.object_id];
 
 		float incident_light_level = dot(normal, light_direction);
 		if(incident_light_level > 0){
+
 			float Incident[3];
 			Incident[0] = 0;
 			Incident[1] = 0;
 			Incident[2] = 0;
 				// below I commented out the code but it is a step towards radial attenuation
-				// float rad_attenuation = 0;
+				float rad_attenuation = 0;
+				float ang_attenuation = 0;
 
-				// pow(dot(light_direction, light.direction), light.d)
+				ang_attenuation = pow(dot(light_direction, light.direction), light.d);
 
-				// rad_attenuation = 1 / (light.a * sqr(distance_to_light) + light.b * distance_to_light + light.c);
+				rad_attenuation = 1 / (light.a * sqr(distance_to_light) + light.b * distance_to_light + light.c);
 
-				// rad_attenuation = clamp(rad_attenuation, 0.0, 1.0);
+				rad_attenuation = clamp(rad_attenuation, 0.0, 1.0);
 
 				// here is the r vector out of the light or object
 				float r[3];
@@ -265,7 +270,7 @@ Object* closest = &scene->objects[intersect.object_id];
 				// This is where we get the specular color for the light
 
 				float spec[3];
-
+				//printf("trest");
 				float spec_1 = powf(dot(r,v), SPEC_SHINE) * SPEC_K;
 				vector_scale(light.color, spec_1, spec);
 				vector_multiply(closest->specular_color, spec, spec);
