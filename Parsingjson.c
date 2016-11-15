@@ -15,6 +15,7 @@ typedef float point4[3];
 typedef struct{
   int kind; // 0 = cylinder, 1 = sphere, 2 = plane
   float color[3];
+  float diffuse_color[3];
   float position[3];
   float direction[3];
   float specular_color[3];
@@ -50,7 +51,7 @@ typedef struct{
     struct{
       point3 position;
       float direction;
-      float color;
+      float color[3];
       float radial_a0;
       float radial_a1;
       float radial_a2;
@@ -61,13 +62,17 @@ typedef struct{
 }Object;
 
 typedef struct {
-      float position;
-      float direction;
-      float color;
+      float position[3];
+      float direction[3];
+      float color[3];
       float radial_a0;
       float radial_a1;
       float radial_a2;
       float angular_a0;
+      float a;
+      float b;
+      float c;
+      float d;
 }Light;
 typedef struct {
   float vect_point[3];
@@ -325,10 +330,17 @@ Scene read_scene(char* json_name){
         }
         else if(strcmp(key, "diffuse_color") == 0){
           float* v3 = next_vector(json);
-          color[0] = v3[0];
-          color[1] = v3[1];
-          color[2] = v3[2];
-          set_color = 1;
+          diffuse_color[0] = v3[0];
+          diffuse_color[1] = v3[1];
+          diffuse_color[2] = v3[2];
+          set_diffuse_color = 1;
+        }
+        else if(strcmp(key, "specular_color") == 0){
+          float* v3 = next_vector(json);
+          specular_color[0] = v3[0];
+          specular_color[1] = v3[1];
+          specular_color[2] = v3[2];
+          set_specular_color = 1;
         }
         else if(strcmp(key, "position") == 0){
           float* v3 = next_vector(json);
@@ -350,44 +362,6 @@ Scene read_scene(char* json_name){
           direction[1] = v3[1];
           direction[2] = v3[2];
           set_direction = 1;
-        }
-        else if(strcmp(key, "diffuse_color")==0){
-          if(objtype == T_SPHERE){
-            float* v3 = next_vector(json);
-            diffuse_color[0] = v3[0];
-            diffuse_color[1] = v3[1];
-            diffuse_color[2] = v3[2];
-            set_diffuse_color = 1;
-          }
-
-        }
-        else if(strcmp(key, "specular_color")==0){
-          if(objtype == T_SPHERE){
-            float* v3 = next_vector(json);
-            specular_color[0] = v3[0];
-            specular_color[1] = v3[1];
-            specular_color[2] = v3[2];
-            set_specular_color = 1;
-          }
-        }
-        else if(strcmp(key, "diffuse_color")==0){
-          if(objtype == T_PLANE){
-            float* v3 = next_vector(json);
-            diffuse_color[0] = v3[0];
-            diffuse_color[1] = v3[1];
-            diffuse_color[2] = v3[2];
-            set_diffuse_color = 1;
-          }
-
-        }
-        else if(strcmp(key, "specular_color")==0){
-          if(objtype == T_PLANE){
-            float* v3 = next_vector(json);
-            specular_color[0] = v3[0];
-            specular_color[1] = v3[1];
-            specular_color[2] = v3[2];
-            set_specular_color = 1;
-          }
         }
         else if(strcmp(key, "color")==0){
           if(objtype == T_LIGHT){
@@ -500,8 +474,12 @@ Scene read_scene(char* json_name){
         fprintf(stderr, "Sphere must have a non-negative radius! Line %d\n", line);
         exit(1);
       }
-      if(set_color != 1){
-        fprintf(stderr, "Sphere must have a color! Line %d\n", line);
+      if(set_diffuse_color != 1){
+        fprintf(stderr, "Sphere must have a diffuse color! Line %d\n", line);
+        exit(1);
+      }
+      if(set_specular_color != 1){
+        fprintf(stderr, "Sphere must have a specular color! Line %d\n", line);
         exit(1);
       }
       if(set_position != 1){
@@ -522,10 +500,15 @@ Scene read_scene(char* json_name){
       }
       // This gets our properties that we use for the sphere object
 
-      new_object.color[0] = color[0];
-      new_object.color[1] = color[1];
-      new_object.color[2] = color[2];
+      new_object.diffuse_color[0] = diffuse_color[0];
+      new_object.diffuse_color[1] = diffuse_color[1];
+      new_object.diffuse_color[2] = diffuse_color[2];
+
+      new_object.specular_color[0] = specular_color[0];
+      new_object.specular_color[1] = specular_color[1];
+      new_object.specular_color[2] = specular_color[2];
       
+            
       new_object.a = position[0];
       new_object.b = position[1];
       new_object.c = position[2];
@@ -572,8 +555,12 @@ Scene read_scene(char* json_name){
       //new_object.d = direction;
     }
     if(objtype == T_PLANE){
-      if(set_color != 1){
-        fprintf(stderr, "Object must have a color! Line %d\n", line);
+      if(set_diffuse_color != 1){
+        fprintf(stderr, "Plane must have a diffuse color! Line %d\n", line);
+        exit(1);
+      }
+      if(set_specular_color != 1){
+        fprintf(stderr, "Plane must have a  specular color! Line %d\n", line);
         exit(1);
       }
       if(set_position != 1){
@@ -585,9 +572,13 @@ Scene read_scene(char* json_name){
         exit(1);
       }      
       // This get our properties for our plane object
-      new_object.color[0] = color[0];
-      new_object.color[1] = color[1];
-      new_object.color[2] = color[2];
+      new_object.diffuse_color[0] = diffuse_color[0];
+      new_object.diffuse_color[1] = diffuse_color[1];
+      new_object.diffuse_color[2] = diffuse_color[2];
+
+      new_object.specular_color[0] = specular_color[0];
+      new_object.specular_color[1] = specular_color[1];
+      new_object.specular_color[2] = specular_color[2];
       
       new_object.a = normal[0];
       new_object.b = normal[1];

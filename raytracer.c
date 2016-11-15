@@ -205,6 +205,7 @@ Object* closest = &scene->objects[intersect.object_id];
 		// distance to light
 		float dist[3];
 		vector_subtract(light.position, intersect.vect_point, dist);
+		normalize(dist);
 		float distance_to_light = length(dist);
 
 		// light direction
@@ -215,19 +216,19 @@ Object* closest = &scene->objects[intersect.object_id];
 
 		 //shadow test intersection
 
-		// Intersection shadow; 
-		// send_ray(&shadow, scene, intersect.vect_point, light_direction, intersect.object_id);
+		Intersection shadow; 
+		send_ray(&shadow, scene, intersect.vect_point, light_direction, intersect.object_id);
 
-		// if(shadow.object_id != -1){
-		// 	vector_subtract(shadow.vect_point, intersect.vect_point, dist);
-		// 	float distance_to_object = length(dist);
+		if(shadow.object_id != -1){
+			vector_subtract(shadow.vect_point, intersect.vect_point, dist);
+			float distance_to_object = length(dist);
 
-		// 	if(distance_to_light > distance_to_object){
-		// 		continue;
-		// 	}
+			if(distance_to_light > distance_to_object){
+				continue;
+			}
 
 
-		// }
+		}
 		// here we get the normal for the sphere and the normal of the objects
 		if(closest->kind == T_SPHERE){
 					float c[3];
@@ -265,28 +266,36 @@ Object* closest = &scene->objects[intersect.object_id];
 
 				// here is the r vector out of the light or object
 				float r[3];
+				//normalize(r);
 				vector_scale(normal, dot(light_direction, normal) * 2, r);
+				//normalize(r);
 				vector_subtract(light_direction, r, r);
+				//normalize(r);
 				// heere is the v vector that comes out of the light as well
 				float v[3];
+				//normalize(v);
 				vector_scale(rd, -1, v);
+				//normalize(v);
 
 				// This is where we get the specular color for the light
 
 				float spec[3];
 				//printf("trest");
-				float spec_1 = powf(dot(r,v), SPEC_SHINE) * SPEC_K;
+				float spec_1 = powf(dot(v,r), SPEC_SHINE) * SPEC_K;
 				vector_scale(light.color, spec_1, spec);
+				//normalize(spec);
 				vector_multiply(closest->specular_color, spec, spec);
-
+				//normalize(spec);
 				vector_add(color, spec, color);
+				//normalize(color);
 
 				// this is where we get diffuse color for our light
 				float diff[3];
 
-				vector_scale(closest->color, incident_light_level, diff);
-
+				vector_scale(closest->diffuse_color, incident_light_level, diff);
+				//normalize(diff);
 				vector_add(color, diff, color);
+				//normalize(color);
 
 
 
@@ -295,6 +304,7 @@ Object* closest = &scene->objects[intersect.object_id];
 	}
 
 }	
+// Here is my function for refraction
 static void refraction(point3 t, point3 I, point3 N, float n1, float n2){
 	float eta = n1/n2;
 	float dot_NI = dot(N,I);
@@ -309,6 +319,7 @@ static void refraction(point3 t, point3 I, point3 N, float n1, float n2){
 		vector_subtract(t,tmp,t);
 	}
 }
+// Here is my function for reflection
 static void reflection(point3 r, point3 d, point3 n){
 	// r = d - 2(d*n)n
 	multiply_vector(n, -2.0 * dot(d,n),r);
