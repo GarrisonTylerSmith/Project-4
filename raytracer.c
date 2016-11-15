@@ -26,7 +26,11 @@ void vector_multiply(float v[], float u[], float n[]){
 	n[1] = v[1]*u[1];
 	n[2] = v[2]*u[2];
 }
-
+void multiply_vector(float *a, float b, float *out)
+{
+    for (int i = 0; i < 3; i++)
+        out[i] = a[i] * b;
+}
 
 double clamp(double number, double min, double max){
 	if(number > max) {
@@ -299,10 +303,16 @@ static void refraction(point3 t, point3 I, point3 N, float n1, float n2){
 		t[0] = t[1] = t[2] = 0.0;
 	}else{
 		point3 tmp;
-		vector_multiply(I,eta,t);
-		vector_multiply(N,eta*dot_NI + sqrt(k), tmp);
+		float tmps = (eta* dot_NI) + sqrt(k);
+		multiply_vector(I,eta,t);
+		multiply_vector(N, tmps, tmp);
 		vector_subtract(t,tmp,t);
 	}
+}
+static void reflection(point3 r, point3 d, point3 n){
+	// r = d - 2(d*n)n
+	multiply_vector(n, -2.0 * dot(d,n),r);
+	vector_add(r,d,r);
 }
 void raycast(Scene* scene, char* outfile, PPMImage* image){
 	image->data = malloc(sizeof(PPMPixel) * image->width * image->height);
