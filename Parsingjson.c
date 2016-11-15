@@ -9,6 +9,9 @@
 # define T_CAMERA 4
 # define T_LIGHT 5
 int line = 1;
+typedef float point3[3];
+typedef float point4[3];
+
 typedef struct{
   int kind; // 0 = cylinder, 1 = sphere, 2 = plane
   float color[3];
@@ -45,7 +48,7 @@ typedef struct{
       float height;
     }camera;
     struct{
-      float position;
+      point3 position;
       float direction;
       float color;
       float radial_a0;

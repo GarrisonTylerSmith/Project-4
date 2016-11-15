@@ -291,6 +291,19 @@ Object* closest = &scene->objects[intersect.object_id];
 	}
 
 }	
+static void refraction(point3 t, point3 I, point3 N, float n1, float n2){
+	float eta = n1/n2;
+	float dot_NI = dot(N,I);
+	float k = 1.0 - eta * eta *(1.0 - dot_NI * dot_NI);
+	if(k < 0.0 || n2 <= 0.0){
+		t[0] = t[1] = t[2] = 0.0;
+	}else{
+		point3 tmp;
+		vector_multiply(I,eta,t);
+		vector_multiply(N,eta*dot_NI + sqrt(k), tmp);
+		vector_subtract(t,tmp,t);
+	}
+}
 void raycast(Scene* scene, char* outfile, PPMImage* image){
 	image->data = malloc(sizeof(PPMPixel) * image->width * image->height);
 	
